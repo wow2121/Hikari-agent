@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 允许本地服务和服务器的明文通信（ChromaDB、Neo4j） -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <!-- 允许服务器公网 IP -->
+        <domain includeSubdomains="true">60.204.249.132</domain>
+    </domain-config>
+
+    <!-- 其他域名使用默认安全设置 -->
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

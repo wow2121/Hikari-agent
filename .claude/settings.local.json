@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where:*)",
+      "Bash(gradlew.bat assembleDebug:*)",
+      "Bash(./gradlew assembleDebug:*)",
+      "Bash(gradlew.bat clean:*)",
+      "Bash(.gradlew.bat assembleDebug)",
+      "WebSearch",
+      "Bash(D:mylightgradlew.bat assembleDebug)",
+      "Bash(./gradlew.bat assembleDebug)",
+      "Bash(dir \"C:\\Program Files\\Android\\Android Studio\\jbr\\bin\\java.exe\")",
+      "Bash(adb devices:*)",
+      "Bash(./gradlew.bat clean:*)",
+      "Bash(dir:*)",
+      "Bash(nul)",
+      "WebFetch(domain:github.com)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(cmd /c gradlew.bat assembleDebug)",
+      "Bash(cmd /c \"gradlew.bat assembleDebug\")",
+      "WebFetch(domain:k2-fsa.github.io)",
+      "Bash(cmd /c \"gradlew.bat assembleDebug 2>&1 | head -200\")",
+      "Bash(cat:*)",
+      "Bash(curl:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

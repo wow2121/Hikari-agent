@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">小光助手</string>
+
+    <!-- Service notifications -->
+    <string name="notification_channel_name">语音监听服务</string>
+    <string name="notification_channel_description">小光正在后台监听环境信息</string>
+    <string name="notification_title">小光正在聆听</string>
+    <string name="notification_text">点击查看对话和日程</string>
+    <string name="notification_listening">正在监听环境对话…</string>
+    <string name="notification_processing">正在处理信息…</string>
+
+    <!-- Permissions -->
+    <string name="permission_microphone_rationale">小光需要麦克风权限来监听语音唤醒词和环境对话</string>
+    <string name="permission_calendar_rationale">小光需要日历权限来自动创建提取到的日程事件</string>
+    <string name="permission_notification_rationale">小光需要通知权限来显示服务状态和提醒</string>
+    <string name="permission_battery_rationale">为了保持小光持续运行，建议关闭电池优化</string>
+
+    <!-- Main screen -->
+    <string name="tab_conversation">对话</string>
+    <string name="tab_calendar">日程</string>
+    <string name="tab_memory">记忆</string>
+    <string name="tab_settings">设置</string>
+
+    <!-- Conversation -->
+    <string name="hint_message_input">输入消息或点击麦克风说话…</string>
+    <string name="wake_word_detected">检测到唤醒词</string>
+    <string name="listening">正在聆听…</string>
+    <string name="processing">处理中…</string>
+
+    <!-- Calendar -->
+    <string name="no_events">暂无自动识别的日程</string>
+    <string name="event_auto_created">自动创建</string>
+    <string name="event_confidence">置信度: %d%%</string>
+
+    <!-- Settings -->
+    <string name="settings_monitoring">监听设置</string>
+    <string name="settings_enable_monitoring">启用环境监听</string>
+    <string name="settings_enable_monitoring_desc">持续监听环境对话并提取日程信息</string>
+    <string name="settings_wake_word_only">仅启用语音唤醒</string>
+    <string name="settings_wake_word_only_desc">只在说"小光小光"时启动，不监听环境</string>
+
+    <string name="settings_privacy">隐私设置</string>
+    <string name="settings_data_retention">数据保留时长</string>
+    <string name="settings_clear_all_data">清除所有数据</string>
+    <string name="settings_export_data">导出我的数据</string>
+
+    <string name="settings_ai">AI设置</string>
+    <string name="settings_api_key">硅基流动 API Key</string>
+    <string name="settings_model">模型选择</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_confirm">确认</string>
+    <string name="dialog_cancel">取消</string>
+    <string name="dialog_delete">删除</string>
+    <string name="dialog_clear_data_title">清除所有数据？</string>
+    <string name="dialog_clear_data_message">这将删除所有对话记录、日程和记忆。此操作不可撤销。</string>
+
+    <!-- Errors -->
+    <string name="error_microphone_permission">需要麦克风权限</string>
+    <string name="error_calendar_permission">需要日历权限</string>
+    <string name="error_network">网络连接失败</string>
+    <string name="error_api_key_missing">请在设置中配置 API Key</string>
+</resources>
