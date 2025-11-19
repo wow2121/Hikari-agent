@@ -278,15 +278,20 @@ class UnifiedSocialManager @Inject constructor(
         // 2. 获取关系
         var relationship = characterBook.getRelationship(characterProfile.basicInfo.characterId, "xiaoguang")
         if (relationship == null) {
-            // 关系不存在，创建默认关系
+            // ⭐ 关系不存在，创建默认关系（根据档案的 isMaster 标志决定关系类型）
+            val relationType = if (characterProfile.basicInfo.isMaster) {
+                RelationType.MASTER
+            } else {
+                RelationType.OTHER
+            }
             relationship = Relationship(
                 fromCharacterId = "xiaoguang_main",
                 toCharacterId = characterProfile.basicInfo.characterId,
-                relationType = RelationType.OTHER,
-                intimacyLevel = 0.5f
+                relationType = relationType,
+                intimacyLevel = if (characterProfile.basicInfo.isMaster) 1.0f else 0.5f
             )
             characterBook.saveRelationship(relationship)
-            Timber.d("[UnifiedSocial] 创建默认关系: $personName")
+            Timber.d("[UnifiedSocial] 创建默认关系: $personName (type=$relationType, isMaster=${characterProfile.basicInfo.isMaster})")
         }
 
         // ⚠️ 再次检查主人关系（双重保险）
@@ -343,13 +348,19 @@ class UnifiedSocialManager @Inject constructor(
         // 2. 获取或创建关系
         var relationship = characterBook.getRelationship(characterProfile.basicInfo.characterId, "xiaoguang")
         if (relationship == null) {
+            // ⭐ 关系不存在，创建默认关系（根据档案的 isMaster 标志决定关系类型）
+            val relationType = if (characterProfile.basicInfo.isMaster) {
+                RelationType.MASTER
+            } else {
+                RelationType.OTHER
+            }
             relationship = Relationship(
                 fromCharacterId = "xiaoguang_main",
                 toCharacterId = characterProfile.basicInfo.characterId,
-                relationType = RelationType.OTHER,
-                intimacyLevel = 0.5f
+                relationType = relationType,
+                intimacyLevel = if (characterProfile.basicInfo.isMaster) 1.0f else 0.5f
             )
-            Timber.d("[UnifiedSocial] 创建默认关系: $personName")
+            Timber.d("[UnifiedSocial] 创建默认关系: $personName (type=$relationType, isMaster=${characterProfile.basicInfo.isMaster})")
         }
 
         // 3. 更新互动计数和时间

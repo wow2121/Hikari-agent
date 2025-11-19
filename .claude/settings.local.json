@@ -22,7 +22,9 @@
       "WebFetch(domain:k2-fsa.github.io)",
       "Bash(cmd /c \"gradlew.bat assembleDebug 2>&1 | head -200\")",
       "Bash(cat:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
@@ -383,10 +384,11 @@ class ProcessConversationUseCase @Inject constructor(
     ): List<ChatMessage> {
         val messages = mutableListOf<ChatMessage>()
 
-        // ⭐ 确保知识系统已初始化（避免时序竞争导致主人档案创建失败）
-        if (!knowledgeSystemInitializer.isInitialized()) {
-            Timber.w("[ProcessConversation] ⚠️ 知识系统尚未初始化，等待初始化完成...")
-            knowledgeSystemInitializer.initialize()
+        // ⭐ 等待知识系统初始化完成（使用 StateFlow 而不是 isInitialized 检查）
+        // 避免时序竞争：必须等到 IdentityRegistry 和 MasterInitializer 都就绪
+        if (!knowledgeSystemInitializer.isReady.value) {
+            Timber.w("[ProcessConversation] ⚠️ 知识系统尚未就绪，等待初始化完成...")
+            knowledgeSystemInitializer.isReady.first { it }
             Timber.i("[ProcessConversation] ✅ 知识系统已就绪")
         }
 

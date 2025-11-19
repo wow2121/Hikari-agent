@@ -9,15 +9,19 @@ import javax.inject.Singleton
 
 /**
  * 语音活动检测器（Voice Activity Detector）
- * 用于检测音频中是否存在语音活动，节省电量
+ * 使用自适应阈值，根据环境噪声自动调整灵敏度
  */
 @Singleton
 class VoiceActivityDetector @Inject constructor() {
     companion object {
         private const val TAG = "VAD"
 
-        // 能量阈值（可根据环境调整）- 降低阈值以提高灵敏度
-        private const val ENERGY_THRESHOLD = 0.005f  // 从 0.02 降低到 0.005
+        // 自适应阈值参数
+        private const val NOISE_FLOOR_INIT = 0.0003f  // 初始噪声底（适应 VOICE_RECOGNITION 源）
+        private const val NOISE_FLOOR_ALPHA = 0.05f   // 噪声底更新系数（越小越平滑）
+        private const val SPEECH_THRESHOLD_RATIO = 2.5f  // 语音阈值 = 噪声底 × 此倍数
+        private const val MIN_THRESHOLD = 0.0002f    // 最低阈值，防止过于敏感
+        private const val MAX_THRESHOLD = 0.01f      // 最高阈值，防止过于迟钝
 
         // 零交叉率阈值
         private const val ZCR_THRESHOLD = 0.3f
@@ -25,6 +29,9 @@ class VoiceActivityDetector @Inject constructor() {
         // 连续帧数要求
         private const val MIN_SPEECH_FRAMES = 3
         private const val MIN_SILENCE_FRAMES = 10
+
+        // 初始化帧数（用于学习环境噪声）
+        private const val INIT_FRAMES = 50
     }
 
     private val _isSpeechDetected = MutableStateFlow(false)
@@ -33,6 +40,12 @@ class VoiceActivityDetector @Inject constructor() {
     private var speechFrameCount = 0
     private var silenceFrameCount = 0
     private var lastEnergy = 0f  // 最后一次计算的能量值
+
+    // 自适应阈值相关
+    private var noiseFloor = NOISE_FLOOR_INIT  // 当前噪声底估计
+    private var dynamicThreshold = NOISE_FLOOR_INIT * SPEECH_THRESHOLD_RATIO  // 动态阈值
+    private var initFrameCount = 0  // 初始化计数器
+    private var isInitialized = false  // 是否完成初始化
 
     /**
      * 检测音频帧是否包含语音
@@ -47,12 +60,34 @@ class VoiceActivityDetector @Inject constructor() {
         // 计算零交叉率
         val zcr = calculateZeroCrossingRate(audioData)
 
-        // 判断是否为语音
-        val isSpeech = energy > ENERGY_THRESHOLD && zcr < ZCR_THRESHOLD
+        // 初始化阶段：学习环境噪声
+        if (!isInitialized) {
+            initFrameCount++
+            // 使用指数移动平均更新噪声底
+            noiseFloor = noiseFloor * (1 - NOISE_FLOOR_ALPHA) + energy * NOISE_FLOOR_ALPHA
 
-        // 调试：定期输出能量和 ZCR 值
+            if (initFrameCount >= INIT_FRAMES) {
+                isInitialized = true
+                dynamicThreshold = (noiseFloor * SPEECH_THRESHOLD_RATIO).coerceIn(MIN_THRESHOLD, MAX_THRESHOLD)
+                Log.i(TAG, "🎯 VAD 初始化完成: 噪声底=${String.format("%.5f", noiseFloor)}, 阈值=${String.format("%.5f", dynamicThreshold)}")
+            }
+
+            frameCount++
+            return false  // 初始化期间不检测语音
+        }
+
+        // 自适应更新噪声底（只在静音时更新）
+        if (!_isSpeechDetected.value && energy < dynamicThreshold) {
+            noiseFloor = noiseFloor * (1 - NOISE_FLOOR_ALPHA * 0.1f) + energy * (NOISE_FLOOR_ALPHA * 0.1f)
+            dynamicThreshold = (noiseFloor * SPEECH_THRESHOLD_RATIO).coerceIn(MIN_THRESHOLD, MAX_THRESHOLD)
+        }
+
+        // 判断是否为语音（使用动态阈值）
+        val isSpeech = energy > dynamicThreshold && zcr < ZCR_THRESHOLD
+
+        // 调试：定期输出能量和阈值
         if (frameCount % 100 == 0L) {
-            Log.d(TAG, "[VAD] 能量: ${String.format("%.5f", energy)} (阈值: $ENERGY_THRESHOLD), ZCR: ${String.format("%.3f", zcr)}, 语音检测: $isSpeech")
+            Log.d(TAG, "[VAD] 能量: ${String.format("%.5f", energy)} (阈值: ${String.format("%.5f", dynamicThreshold)}, 噪声底: ${String.format("%.5f", noiseFloor)}), ZCR: ${String.format("%.3f", zcr)}, 语音: $isSpeech")
         }
         frameCount++
 
@@ -63,7 +98,7 @@ class VoiceActivityDetector @Inject constructor() {
 
             if (!_isSpeechDetected.value && speechFrameCount >= MIN_SPEECH_FRAMES) {
                 _isSpeechDetected.value = true
-                Log.i(TAG, "🎤 检测到语音活动 (能量: ${String.format("%.5f", energy)}, ZCR: ${String.format("%.3f", zcr)})")
+                Log.i(TAG, "🎤 检测到语音活动 (能量: ${String.format("%.5f", energy)}, 阈值: ${String.format("%.5f", dynamicThreshold)})")
             }
         } else {
             silenceFrameCount++
@@ -149,5 +184,14 @@ class VoiceActivityDetector @Inject constructor() {
         speechFrameCount = 0
         silenceFrameCount = 0
         lastEnergy = 0f
+
+        // 重置自适应状态
+        noiseFloor = NOISE_FLOOR_INIT
+        dynamicThreshold = NOISE_FLOOR_INIT * SPEECH_THRESHOLD_RATIO
+        initFrameCount = 0
+        isInitialized = false
+        frameCount = 0L
+
+        Log.d(TAG, "VAD 已重置，将重新学习环境噪声")
     }
 }

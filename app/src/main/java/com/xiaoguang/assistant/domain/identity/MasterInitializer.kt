@@ -88,7 +88,45 @@ class MasterInitializer @Inject constructor(
             return identity
         }
 
-        // 3. 都没有，创建默认主人
+        // 3. ⭐ 检查是否有错误的主人档案（name="主人" 但 isMaster=false）
+        val allProfiles = characterBook.getAllProfiles()
+        val wrongMasterProfile = allProfiles.firstOrNull {
+            (it.basicInfo.name == DEFAULT_MASTER_NAME || it.basicInfo.nickname == DEFAULT_MASTER_NAME)
+            && !it.basicInfo.isMaster
+        }
+
+        if (wrongMasterProfile != null) {
+            Timber.w("[MasterInitializer] ⚠️ 发现错误的主人档案（isMaster=false），正在修复: ${wrongMasterProfile.basicInfo.characterId}")
+
+            // 修复档案：将 isMaster 设置为 true
+            val correctedProfile = wrongMasterProfile.copy(
+                basicInfo = wrongMasterProfile.basicInfo.copy(
+                    isMaster = true,
+                    name = DEFAULT_MASTER_NAME,
+                    nickname = DEFAULT_MASTER_NAME
+                )
+            )
+            characterBook.saveProfile(correctedProfile)
+
+            // 创建并注册身份
+            val identity = Identity(
+                canonicalId = MASTER_CANONICAL_ID,
+                characterId = correctedProfile.basicInfo.characterId,
+                personIdentifier = "master_default",
+                displayName = DEFAULT_MASTER_NAME,
+                aliases = setOf("主人", "master", "master_default"),
+                isMaster = true
+            )
+            identityRegistry.register(identity)
+
+            // 确保有关系记录
+            ensureMasterRelationship(correctedProfile.basicInfo.characterId)
+
+            Timber.i("[MasterInitializer] ✅ 错误档案已修复为主人档案")
+            return identity
+        }
+
+        // 4. 都没有，创建默认主人
         Timber.i("[MasterInitializer] 未发现主人档案，创建默认主人...")
         return createDefaultMaster()
     }

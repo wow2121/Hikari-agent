@@ -81,23 +81,18 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // ✅ 启动心流系统
-        Timber.i("[MainActivity] ========== 启动心流系统 ==========")
-        try {
-            flowSystemInitializer.initialize(this)
-            Timber.i("[MainActivity] ✅ 心流系统初始化完成")
-
-            // 验证心流状态
-            lifecycleScope.launch {
+        // ✅ 监听心流系统状态（知识系统和心流系统在 Application 中已初始化）
+        Timber.i("[MainActivity] ========== 监听心流系统状态 ==========")
+        lifecycleScope.launch {
+            try {
                 val coordinator = flowSystemInitializer.getCoordinator()
                 coordinator.isRunning.collect { isRunning ->
                     Timber.i("[MainActivity] 🌟 心流运行状态: ${if (isRunning) "运行中" else "已停止"}")
                 }
+            } catch (e: Exception) {
+                Timber.e(e, "[MainActivity] ❌ 获取心流状态失败")
             }
-        } catch (e: Exception) {
-            Timber.e(e, "[MainActivity] ❌ 心流系统初始化失败")
         }
-        Timber.i("[MainActivity] ========== 心流系统初始化完毕 ==========")
 
 
         setContent {
